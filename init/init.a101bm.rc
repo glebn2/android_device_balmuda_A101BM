@@ -1,0 +1,11 @@
+# BALMUDA Phone
+# USB OTG: the kernel boots with host mode disabled; the stock framework used to enable it
+on boot
+    write /sys/module/dwc3_msm/parameters/disable_host_mode N
+    # Set the stock USB IDs before the AOSP configfs rule binds the UDC
+    write /config/usb_gadget/g1/idVendor 0x0482
+    write /config/usb_gadget/g1/idProduct 0x0a74
+
+# Power HAL (libperfmgr) waits for vendor.powerhal.init
+on property:sys.boot_completed=1
+    setprop vendor.powerhal.init 1

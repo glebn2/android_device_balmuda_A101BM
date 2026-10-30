@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <string name="app_name">BALMUDA Parts</string>
+    <string name="gestures_title">BALMUDA gestures</string>
+    <string name="gestures_summary">Relax mode, shake to wake</string>
+    <string name="relax_title">Relax mode</string>
+    <string name="relax_summary">Place the phone face down to mute most notifications. Alarms still sound, calls only vibrate.</string>
+    <string name="relax_tile_on">Face down to mute</string>
+    <string name="relax_tile_off">Off</string>
+    <string name="shake_title">Shake to wake</string>
+    <string name="shake_summary">Shake the phone to turn on the screen</string>
+</resources>

@@ -1,0 +1,29 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] NotificationRecord: light notifications by default
+
+Most apps never call enableLights(true), so the notification LED of
+BALMUDA Phone hardly ever lit. Show the light for every channel unless the
+user turned it off for that channel (USER_LOCKED_LIGHTS). Devices without a
+notification LED are not affected (canShowLightsLocked).
+---
+ .../com/android/server/notification/NotificationRecord.java  | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/services/core/java/com/android/server/notification/NotificationRecord.java b/services/core/java/com/android/server/notification/NotificationRecord.java
+index 44300dd..e96475b 100644
+--- a/services/core/java/com/android/server/notification/NotificationRecord.java
++++ b/services/core/java/com/android/server/notification/NotificationRecord.java
+@@ -369,7 +369,10 @@ public final class NotificationRecord {
+ 
+         int channelLightColor = getChannel().getLightColor() != 0 ? getChannel().getLightColor()
+                 : defaultLightColor;
+-        Light light = getChannel().shouldShowLights() ? new Light(channelLightColor,
++        // BALMUDA Phone: light every channel unless the user turned the light off
++        final boolean channelLights = getChannel().shouldShowLights()
++                || (getChannel().getUserLockedFields() & NotificationChannel.USER_LOCKED_LIGHTS) == 0;
++        Light light = channelLights ? new Light(channelLightColor,
+                 defaultLightOn, defaultLightOff) : null;
+         if (mPreChannelsNotification
+                 && (getChannel().getUserLockedFields()

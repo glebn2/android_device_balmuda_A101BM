@@ -1,0 +1,10 @@
+
+# IMS
+
+# Media
+media.stagefright.thumbnail.prefer_hw_codecs=true
+
+# Motorola
+
+# Fwk detect
+ro.vendor.qti.va_aosp.support=1

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <SwitchPreferenceCompat
+        android:key="relax_mode"
+        android:title="@string/relax_title"
+        android:summary="@string/relax_summary"
+        android:defaultValue="false" />
+    <SwitchPreferenceCompat
+        android:key="shake_to_wake"
+        android:title="@string/shake_title"
+        android:summary="@string/shake_summary"
+        android:defaultValue="false" />
+</PreferenceScreen>

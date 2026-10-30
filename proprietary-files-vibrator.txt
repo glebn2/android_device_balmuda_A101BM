@@ -1,0 +1,7 @@
+# Stock vibrator HAL (timed_output); the source HAL only supports leds/vibrator and qcom-haptics
+vendor/bin/hw/vendor.qti.hardware.vibrator.service;MODULE_SUFFIX=_kyocera
+vendor/etc/init/vendor.qti.hardware.vibrator.service.rc
+vendor/etc/vintf/manifest/vendor.qti.hardware.vibrator.service.xml
+vendor/lib64/vendor.qti.hardware.vibrator.impl.so;MODULE_SUFFIX=_kyocera
+vendor/lib64/libqtivibratoreffect.so;MODULE_SUFFIX=_kyocera
+# excluded-input-devices.xml (stock) is listed in proprietary-files.txt

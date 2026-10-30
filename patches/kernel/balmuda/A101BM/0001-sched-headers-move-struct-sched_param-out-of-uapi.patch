@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] sched/headers: move struct sched_param out of uapi
+
+Equivalent of upstream f3ac60671954. The tree is only used for UAPI headers
+(TARGET_KERNEL_SOURCE); without this vendor code fails with a redefinition
+of struct sched_param against bionic <sched.h>.
+---
+ include/linux/sched.h            | 4 ++++
+ include/uapi/linux/sched/types.h | 4 ----
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index e513b6d..4180748 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -32,6 +32,10 @@
+ 
+ /* task_struct member predeclarations (sorted alphabetically): */
+ struct audit_context;
++
++struct sched_param {
++	int sched_priority;
++};
+ struct backing_dev_info;
+ struct bio_list;
+ struct blk_plug;
+diff --git a/include/uapi/linux/sched/types.h b/include/uapi/linux/sched/types.h
+index c852153..f863e74 100644
+--- a/include/uapi/linux/sched/types.h
++++ b/include/uapi/linux/sched/types.h
+@@ -4,10 +4,6 @@
+ 
+ #include <linux/types.h>
+ 
+-struct sched_param {
+-	int sched_priority;
+-};
+-
+ #define SCHED_ATTR_SIZE_VER0	48	/* sizeof first published struct */
+ #define SCHED_ATTR_SIZE_VER1	56	/* add: util_{min,max} */
+ 

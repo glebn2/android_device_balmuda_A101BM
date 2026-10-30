@@ -1,0 +1,15 @@
+# IMS client (VoLTE / VoWiFi) from the stock system_ext
+system_ext/priv-app/ims/ims.apk
+# Modem -> audio HAL bridge: listens to vendor.qti.hardware.radio.am@1.0::IQcRilAudio and passes the call state
+# to the audio HAL (setParameters vsid=...;call_state=...). Without it calls have no audio in 2G/3G and VoLTE.
+system_ext/app/QtiTelephonyService/QtiTelephonyService.apk
+system_ext/lib64/libimscamera_jni.so
+system_ext/lib64/libimsmedia_jni.so
+system_ext/lib64/lib-imsvideocodec.so
+system_ext/lib64/lib-imsvt.so
+system_ext/lib64/lib-imsvtextutils.so
+system_ext/lib64/lib-imsvtutils.so
+system_ext/lib64/libdiag_system.so
+system_ext/lib64/vendor.qti.diaghal@1.0.so
+# Same module name as in vendor
+system_ext/lib64/vendor.qti.imsrtpservice@3.0.so;MODULE_SUFFIX=_system_ext

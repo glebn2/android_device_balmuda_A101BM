@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <string name="gestures_title">Жесты BALMUDA</string>
+    <string name="gestures_summary">Relax mode, встряхнуть для включения</string>
+    <string name="relax_title">Relax mode</string>
+    <string name="relax_summary">Положите телефон экраном вниз, чтобы приглушить основные уведомления. Будильник звонит как обычно, звонки — только вибрацией.</string>
+    <string name="relax_tile_on">Экраном вниз — без звука</string>
+    <string name="relax_tile_off">Выключено</string>
+    <string name="shake_title">Встряхнуть для включения</string>
+    <string name="shake_summary">Встряхните телефон, чтобы включить экран</string>
+</resources>

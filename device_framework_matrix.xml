@@ -1,0 +1,119 @@
+<!-- Stock vendor HALs (Kyocera, Egistec, NXP) missing from the AOSP/CAF matrices -->
+<compatibility-matrix version="1.0" type="framework">
+    <hal format="hidl" optional="true">
+        <name>vendor.egistec.hardware.fingerprint</name>
+        <version>4.0</version>
+        <interface>
+            <name>IBiometricsFingerprintRbs</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.kyocera.hardware.display</name>
+        <version>1.0</version>
+        <interface>
+            <name>IDisplay</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.kyocera.hardware.kcjprop</name>
+        <version>1.0</version>
+        <interface>
+            <name>IKcjprop</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.kyocera.hardware.kcjsecurity</name>
+        <version>1.0</version>
+        <interface>
+            <name>IKcjSecurity</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.kyocera.hardware.kclight</name>
+        <version>1.0</version>
+        <interface>
+            <name>ILight</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.kyocera.hardware.kcwifi</name>
+        <version>1.0</version>
+        <interface>
+            <name>IKcWifi</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.kyocera.hardware.powersupply</name>
+        <version>1.0</version>
+        <interface>
+            <name>IPowersupply</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.kyocera.hardware.qalog</name>
+        <version>1.0</version>
+        <interface>
+            <name>IQalog</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.kyocera.hardware.sensors</name>
+        <version>1.0</version>
+        <interface>
+            <name>IMotionDetectSensorExt</name>
+            <instance>default</instance>
+        </interface>
+        <interface>
+            <name>IProximitySensorExt</name>
+            <instance>default</instance>
+        </interface>
+        <interface>
+            <name>ISensorsExt</name>
+            <instance>default</instance>
+        </interface>
+        <interface>
+            <name>IUnderwaterDetectSensorExt</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.kyocera.hardware.thermalmonitor</name>
+        <version>1.0</version>
+        <interface>
+            <name>IThermalmonitor</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.kyocera.hardware.touchscreen</name>
+        <version>1.0</version>
+        <interface>
+            <name>ITouch</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.nxp.nxpese</name>
+        <version>1.0</version>
+        <interface>
+            <name>INxpEse</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.nxp.nxpnfc</name>
+        <version>2.0</version>
+        <interface>
+            <name>INxpNfc</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+</compatibility-matrix>

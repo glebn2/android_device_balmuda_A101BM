@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] version: use BALMUDA_Phone as the version suffix
+
+One image serves every BALMUDA Phone model (A101BM, X01A), so the version
+string carries the neutral BALMUDA_Phone instead of the A101BM codename.
+LINEAGE_BUILD and ro.lineage.device stay A101BM.
+---
+ config/version.mk | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/config/version.mk b/config/version.mk
+index bc3fc56..2c0abdd 100644
+--- a/config/version.mk
++++ b/config/version.mk
+@@ -29,7 +29,8 @@ ifeq ($(LINEAGE_BUILDTYPE), UNOFFICIAL)
+     endif
+ endif
+ 
+-LINEAGE_VERSION_SUFFIX := $(LINEAGE_BUILD_DATE)-$(LINEAGE_BUILDTYPE)$(LINEAGE_EXTRAVERSION)-$(LINEAGE_BUILD)
++# BALMUDA Phone: one image for all models, use a neutral name instead of the A101BM codename
++LINEAGE_VERSION_SUFFIX := $(LINEAGE_BUILD_DATE)-$(LINEAGE_BUILDTYPE)$(LINEAGE_EXTRAVERSION)-BALMUDA_Phone
+ 
+ # Internal version
+ LINEAGE_VERSION := $(PRODUCT_VERSION_MAJOR).$(PRODUCT_VERSION_MINOR)-$(LINEAGE_VERSION_SUFFIX)

@@ -1,0 +1,2 @@
+# ILITEK TDDI touchscreen: double tap in gesture mode is reported as KEY_F3
+key 61    WAKEUP

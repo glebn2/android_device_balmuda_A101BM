@@ -1,0 +1,215 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] Connectivity: support the stock 4.19 kernel of BALMUDA Phone
+
+BALMUDA Phone (A101BM/X01A) runs the stock Kyocera 4.19 kernel without BTF
+backports, ringbuf maps (5.8+) or the kernel versions required by 25Q2+.
+
+- NetBpfLoad: BTF rejected by the kernel is a warning, maps are created
+  without BTF; the 25Q2/25Q4/26Q4 kernel version gates are warnings.
+- netd: allow 25Q2+ on a 4.19 kernel; load the 4.19 ingress/egress stats
+  programs up to MAXAPI.
+- system_server: clat BPF verification failure is logged instead of abort();
+  missing local_net_note_op / loopback_access ringbuf maps disable those
+  event handlers instead of aborting.
+---
+ bpf/loader/NetBpfLoad.cpp                     | 21 ++++++++++++-------
+ bpf/netd/BpfHandler.cpp                       |  3 ++-
+ bpf/progs/netd.c                              |  4 ++--
+ ...id_server_connectivity_ClatCoordinator.cpp |  3 ++-
+ .../libeventpolling/LocalNetEventHandler.cpp  |  7 +++++++
+ .../libeventpolling/LoopbackEventHandler.cpp  |  6 ++++++
+ .../libeventpolling/LocalNetEventHandler.h    |  3 ++-
+ .../connectivity/LocalNetEventListener.java   |  3 ++-
+ 8 files changed, 36 insertions(+), 14 deletions(-)
+
+diff --git a/bpf/loader/NetBpfLoad.cpp b/bpf/loader/NetBpfLoad.cpp
+index 7ba3247..11f9d85 100644
+--- a/bpf/loader/NetBpfLoad.cpp
++++ b/bpf/loader/NetBpfLoad.cpp
+@@ -787,7 +787,13 @@ static int createMaps(const ElfObject& elfObj, const span<const struct bpf_map_d
+         }
+ 
+         ret = loadBtf(elfObj, btf);
+-        if (ret) return ret;
++        if (ret) {
++            // A101BM: the 4.19 kernel rejects BTF, create maps without it.
++            ALOGW("A101BM: kernel rejected BTF (ret=%d), creating maps without BTF", ret);
++            btf__free(btf);
++            btf = NULL;
++            ret = 0;
++        }
+     }
+ 
+     for (unsigned i = 0; i < md.size(); i++) {
+@@ -1275,7 +1281,9 @@ static int loadProgByLibbpf(const char* const elfPath) {
+     ret = bpf_object__load(obj);
+     if (ret) return ret;
+     // On Linux Kernels older than 4.18 BPF_BTF_LOAD command doesn't exist.
+-    if (isAtLeastKernelVersion(4, 19) && bpf_object__btf_fd(obj) < 0) return -1;
++    // A101BM: the 4.19 kernel rejects BTF, libbpf loaded the object without it.
++    if (isAtLeastKernelVersion(4, 19) && bpf_object__btf_fd(obj) < 0)
++        ALOGW("A101BM: no kernel BTF for %s, continuing without BTF", elfPath);
+ 
+     ret = pinMaps(obj, md);
+     if (ret) return ret;
+@@ -1569,21 +1577,18 @@ static int doLoad(char** argv, char * const envp[]) {
+     // 25Q2 bumps the kernel requirement up to 5.4
+     // see also: //system/netd/tests/kernel_test.cpp TestKernel54
+     if (isAtLeast25Q2 && !isAtLeastKernelVersion(5, 4)) {
+-        ALOGE("Android 25Q2 requires kernel 5.4.");
+-        return 6;
++        ALOGW("A101BM: Android 25Q2 requires kernel 5.4, continuing on 4.19");
+     }
+ 
+     // 25Q4 bumps the kernel requirement up to 5.10
+     // see also: //system/netd/tests/kernel_test.cpp TestKernel510
+     if (isAtLeast25Q4 && !isAtLeastKernelVersion(5, 10)) {
+-        ALOGE("Android 25Q4 requires kernel 5.10.");
+-        return 7;
++        ALOGW("A101BM: Android 25Q4 requires kernel 5.10, continuing on 4.19");
+     }
+ 
+     // 26Q4 bumps the kernel requirement up to 5.15
+     if (isAtLeast26Q4 && !isAtLeastKernelVersion(5, 15)) {
+-        ALOGE("Android 26Q4 requires kernel 5.15.");
+-        return 7;
++        ALOGW("A101BM: Android 26Q4 requires kernel 5.15, continuing on 4.19");
+     }
+ 
+     // Technically already required by U, but only enforce on V+
+diff --git a/bpf/netd/BpfHandler.cpp b/bpf/netd/BpfHandler.cpp
+index 9b57548..5bb8c9c 100644
+--- a/bpf/netd/BpfHandler.cpp
++++ b/bpf/netd/BpfHandler.cpp
+@@ -136,7 +136,8 @@ static Result<void> initPrograms(const char* cg2_path) {
+ 
+     // 25Q2 bumps the kernel requirement up to 5.4
+     if (isAtLeast25Q2 && !isAtLeastKernelVersion(5, 4)) {
+-        return Error() << "25Q2+ platform with kernel version < 5.4.0 is unsupported";
++        // A101BM: continue on the stock 4.19 kernel.
++        ALOGW("A101BM: 25Q2+ platform with kernel < 5.4, continuing on 4.19");
+     }
+ 
+     unique_fd cg_fd(open(cg2_path, O_DIRECTORY | O_RDONLY | O_CLOEXEC));
+diff --git a/bpf/progs/netd.c b/bpf/progs/netd.c
+index e4cd7c9..88af132 100644
+--- a/bpf/progs/netd.c
++++ b/bpf/progs/netd.c
+@@ -1020,7 +1020,7 @@ DEFINE_NETD_BPF_PROG_RANGES(ingress, stats, 5_4, INF, T, 25Q4)
+ }
+ 
+ // Android T/U/V 4.19
+-DEFINE_NETD_BPF_PROG_RANGES(ingress, stats, 4_19, 5_4, T, 25Q2)
++DEFINE_NETD_BPF_PROG_RANGES(ingress, stats, 4_19, 5_4, T, MAXAPI)  // A101BM: 4.19 on 25Q2+ too
+ (struct __sk_buff* skb) {
+ return bpf_traffic_account(skb, INGRESS, KVER_4_19, API(T));
+ }
+@@ -1076,7 +1076,7 @@ DEFINE_NETD_BPF_PROG_RANGES(egress, stats, 5_4, INF, T, 25Q4)
+ }
+ 
+ // Android T/U/V 4.19
+-DEFINE_NETD_BPF_PROG_RANGES(egress, stats, 4_19, 5_4, T, 25Q2)
++DEFINE_NETD_BPF_PROG_RANGES(egress, stats, 4_19, 5_4, T, MAXAPI)  // A101BM: 4.19 on 25Q2+ too
+ (struct __sk_buff* skb) {
+ return bpf_traffic_account(skb, EGRESS, KVER_4_19, API(T));
+ }
+diff --git a/service/jni/com_android_server_connectivity_ClatCoordinator.cpp b/service/jni/com_android_server_connectivity_ClatCoordinator.cpp
+index 70991eb..347eb89 100644
+--- a/service/jni/com_android_server_connectivity_ClatCoordinator.cpp
++++ b/service/jni/com_android_server_connectivity_ClatCoordinator.cpp
+@@ -132,7 +132,8 @@ static void verifyClatPerms() {
+ 
+ #undef V2
+ 
+-    if (fatal) abort();
++    // A101BM: clat BPF verification is not fatal on 4.19.
++    if (fatal) ALOGE("A101BM: clat BPF verification failed, clat may not work");
+ }
+ 
+ #undef V
+diff --git a/service/native/libs/libeventpolling/LocalNetEventHandler.cpp b/service/native/libs/libeventpolling/LocalNetEventHandler.cpp
+index 59c2844..4a7dcd3 100644
+--- a/service/native/libs/libeventpolling/LocalNetEventHandler.cpp
++++ b/service/native/libs/libeventpolling/LocalNetEventHandler.cpp
+@@ -18,6 +18,7 @@
+ #include "libeventpolling/LocalNetEventHandler.h"
+ 
+ #include <memory>
++#include <unistd.h>  // A101BM: access()
+ #include <vector>
+ 
+ #include <bpf/BpfRingbuf.h>
+@@ -36,6 +37,11 @@ using bpf::RingbufEventPoller;
+ LocalNetEventHandler::LocalNetEventRingbuf *LocalNetEventHandler::GetRingbuf() {
+     static LocalNetEventRingbuf *const sRingbuf =
+         []() -> LocalNetEventRingbuf * {
++        // A101BM: no ringbuf map on 4.19, avoid abort in the constructor.
++        if (access(LOCAL_NET_NOTE_OP_RINGBUF_PATH, F_OK) != 0) {
++            ALOGW("A101BM: %s missing, local net events disabled", LOCAL_NET_NOTE_OP_RINGBUF_PATH);
++            return nullptr;
++        }
+         auto rb = std::make_unique<LocalNetEventRingbuf>(
+             LOCAL_NET_NOTE_OP_RINGBUF_PATH);
+         return rb.release();
+@@ -46,6 +52,7 @@ LocalNetEventHandler::LocalNetEventRingbuf *LocalNetEventHandler::GetRingbuf() {
+ // static
+ std::vector<uint32_t> LocalNetEventHandler::ConsumeAll() {
+     std::vector<uint32_t> uids_pids;
++    if (!GetRingbuf()) return {};  // A101BM
+     base::Result<int> ret =
+         GetRingbuf()->ConsumeAll([&](const LocalNetNoteOp &event) {
+             uids_pids.push_back(event.uid);
+diff --git a/service/native/libs/libeventpolling/LoopbackEventHandler.cpp b/service/native/libs/libeventpolling/LoopbackEventHandler.cpp
+index 942bbf6..c6d0088 100644
+--- a/service/native/libs/libeventpolling/LoopbackEventHandler.cpp
++++ b/service/native/libs/libeventpolling/LoopbackEventHandler.cpp
+@@ -18,6 +18,7 @@
+ #include "libeventpolling/LoopbackEventHandler.h"
+ 
+ #include <memory>
++#include <unistd.h>  // A101BM: access()
+ 
+ #include <bpf/BpfRingbuf.h>
+ #include <bpf/BpfUtils.h>
+@@ -53,6 +54,11 @@ bpf::RingbufEventPoller<LoopbackAccessEvent> *
+ LoopbackEventHandler::GetPoller() {
+     static bpf::RingbufEventPoller<LoopbackAccessEvent> *const sPoller =
+         []() -> bpf::RingbufEventPoller<LoopbackAccessEvent> * {
++        // A101BM: no ringbuf map on 4.19, avoid abort in the constructor.
++        if (access(LOOPBACK_ACCESS_RINGBUF_NETD_PATH, F_OK) != 0) {
++            ALOGW("A101BM: %s missing, loopback events disabled", LOOPBACK_ACCESS_RINGBUF_NETD_PATH);
++            return nullptr;
++        }
+         auto rb = std::make_unique<BpfRingbuf<LoopbackAccessEvent>>(
+             LOOPBACK_ACCESS_RINGBUF_NETD_PATH);
+ 
+diff --git a/service/native/libs/libeventpolling/include/libeventpolling/LocalNetEventHandler.h b/service/native/libs/libeventpolling/include/libeventpolling/LocalNetEventHandler.h
+index ce46620..958058a 100644
+--- a/service/native/libs/libeventpolling/include/libeventpolling/LocalNetEventHandler.h
++++ b/service/native/libs/libeventpolling/include/libeventpolling/LocalNetEventHandler.h
+@@ -36,7 +36,8 @@ class LocalNetEventHandler {
+     // Returns a duplicate of the ring buffer file descriptor. This is needed so
+     // we can pass the file descriptor via jni for use in polling in java.
+     static android::base::unique_fd GetNewRingbufFd() {
+-        return GetRingbuf()->GetDuplicateFd();
++        // A101BM: no map on 4.19, return an empty fd.
++        return GetRingbuf() ? GetRingbuf()->GetDuplicateFd() : android::base::unique_fd();
+     }
+ 
+     // Consumes all available events in the ring buffer. Returns a list of
+diff --git a/service/src/com/android/server/connectivity/LocalNetEventListener.java b/service/src/com/android/server/connectivity/LocalNetEventListener.java
+index e8d495c..97d2968 100644
+--- a/service/src/com/android/server/connectivity/LocalNetEventListener.java
++++ b/service/src/com/android/server/connectivity/LocalNetEventListener.java
+@@ -98,7 +98,8 @@ public class LocalNetEventListener {
+         if (mStarted) {
+             return;
+         }
+-        if (mMetricsEnabled || mNoteOpsEnabled) {
++        // A101BM: null fd without the ringbuf map on 4.19.
++        if (mRingbufFd != null && (mMetricsEnabled || mNoteOpsEnabled)) {
+             mLooper.getQueue().addOnFileDescriptorEventListener(mRingbufFd,
+                     EVENT_INPUT | EVENT_ERROR, this::consumeEvents);
+         }

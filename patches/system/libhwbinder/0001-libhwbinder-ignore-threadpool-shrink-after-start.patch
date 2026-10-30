@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] libhwbinder: ignore threadpool shrink after start
+
+The stock Android 12 camera.provider@2.4 of BALMUDA Phone reconfigures the
+hwbinder threadpool with fewer threads after it started, which is fatal
+since Android 17. Ignore the shrink with a warning.
+---
+ ProcessState.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/ProcessState.cpp b/ProcessState.cpp
+index 4b2f4fc..1fdd015 100644
+--- a/ProcessState.cpp
++++ b/ProcessState.cpp
+@@ -315,8 +315,11 @@ void ProcessState::spawnPooledThread(bool isMain)
+ }
+ 
+ status_t ProcessState::setThreadPoolConfiguration(size_t maxThreads, bool callerJoinsPool) {
+-    LOG_ALWAYS_FATAL_IF(mThreadPoolStarted && maxThreads < mMaxThreads,
+-           "Binder threadpool cannot be shrunk after starting");
++    // A101BM: stock Android 12 HALs shrink the pool after start, ignore it.
++    if (mThreadPoolStarted && maxThreads < mMaxThreads) {
++        ALOGW("A101BM: ignoring hwbinder threadpool shrink %zu -> %zu after start", mMaxThreads, maxThreads);
++        return OK;
++    }
+ 
+     // if the caller joins the pool, then there will be one thread which is impossible.
+     LOG_ALWAYS_FATAL_IF(maxThreads == 0 && callerJoinsPool,

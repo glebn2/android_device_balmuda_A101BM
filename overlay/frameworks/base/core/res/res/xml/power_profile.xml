@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stock power profile -->
+<device name="Android">
+    <item name="none">0</item>
+    <item name="ambient.on">96</item>
+    <item name="screen.on">107</item>
+    <item name="screen.full">223</item>
+    <array name="cpu.clusters.cores">
+        <value>6</value>
+        <value>1</value>
+        <value>1</value>
+    </array>
+    <array name="cpu.core_speeds.cluster0">
+        <value>300000</value>
+        <value>576000</value>
+        <value>614400</value>
+        <value>864000</value>
+        <value>1075200</value>
+        <value>1363200</value>
+        <value>1516800</value>
+        <value>1651200</value>
+        <value>1804800</value>
+    </array>
+    <array name="cpu.core_speeds.cluster1">
+        <value>652800</value>
+        <value>940800</value>
+        <value>1152000</value>
+        <value>1478400</value>
+        <value>1728000</value>
+        <value>1900800</value>
+        <value>2092800</value>
+        <value>2208000</value>
+    </array>
+    <array name="cpu.core_speeds.cluster2">
+        <value>806400</value>
+        <value>1094400</value>
+        <value>1401600</value>
+        <value>1766400</value>
+        <value>1996800</value>
+        <value>2188800</value>
+        <value>2304000</value>
+    </array>
+    <array name="cpu.core_power.cluster0">
+        <value>20</value>
+        <value>41</value>
+        <value>43</value>
+        <value>65</value>
+        <value>91</value>
+        <value>135</value>
+        <value>155</value>
+        <value>193</value>
+        <value>214</value>
+    </array>
+    <array name="cpu.core_power.cluster1">
+        <value>36</value>
+        <value>41</value>
+        <value>50</value>
+        <value>85</value>
+        <value>115</value>
+        <value>183</value>
+        <value>220</value>
+        <value>242</value>
+    </array>
+    <array name="cpu.core_power.cluster2">
+        <value>36</value>
+        <value>50</value>
+        <value>75</value>
+        <value>115</value>
+        <value>171</value>
+        <value>243</value>
+        <value>260</value>
+    </array>
+    <item name="cpu.active">8.5</item>
+    <item name="cpu.idle">8</item>
+    <item name="cpu.suspend">0</item>
+    <item name="battery.capacity">2500</item>
+    <item name="wifi.on">0.8</item>
+    <item name="wifi.active">390</item>
+    <item name="wifi.scan">200</item>
+    <item name="dsp.audio">55</item>
+    <item name="dsp.video">60</item>
+    <item name="camera.flashlight">146</item>
+    <item name="camera.avg">271</item>
+    <item name="gps.on">55</item>
+    <array name="gps.signalqualitybased">
+        <value>40</value>
+        <value>40</value>
+    </array>
+    <item name="radio.active">150</item>
+    <item name="radio.scanning">70</item>
+    <array name="radio.on">
+        <value>90</value>
+        <value>2</value>
+        <value>2</value>
+        <value>2</value>
+        <value>2</value>
+    </array>
+    <item name="modem.controller.sleep">6.5</item>
+    <item name="modem.controller.idle">3.9</item>
+    <item name="modem.controller.rx">174</item>
+    <item name="modem.controller.tx">174</item>
+    <item name="modem.controller.voltage">1240</item>
+    <array name="memory.bandwidths">
+        <value>16.5</value>
+    </array>
+    <item name="wifi.controller.idle">0.8</item>
+    <item name="wifi.controller.rx">190</item>
+    <item name="wifi.controller.tx">580</item>
+    <array name="wifi.controller.tx_levels">
+    </array>
+    <item name="wifi.controller.voltage">1300</item>
+    <array name="wifi.batchedscan">
+        <value>.0001</value>
+        <value>.001</value>
+        <value>.01</value>
+        <value>.1</value>
+        <value>1</value>
+    </array>
+    <item name="bluetooth.active">93</item>
+    <item name="bluetooth.on">0.65</item>
+    <item name="bluetooth.controller.voltage">1300</item>
+    <item name="bluetooth.controller.idle">1.9</item>
+    <item name="bluetooth.controller.rx">15</item>
+    <item name="bluetooth.controller.tx">62</item>
+</device>

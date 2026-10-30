@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <string name="gestures_title">BALMUDA ジェスチャー</string>
+    <string name="gestures_summary">リラックスモード、振ってスリープ解除</string>
+    <string name="relax_title">リラックスモード</string>
+    <string name="relax_summary">画面を伏せて置くと主な通知をミュートします。アラームは設定どおり鳴り、着信はバイブでお知らせします。</string>
+    <string name="relax_tile_on">伏せるとミュート</string>
+    <string name="relax_tile_off">オフ</string>
+    <string name="shake_title">振ってスリープ解除</string>
+    <string name="shake_summary">本機を振って画面を点灯します</string>
+</resources>

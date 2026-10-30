@@ -1,0 +1,6 @@
+// Based on Motorola sm7250-common
+runtime_resource_overlay {
+    name: "WifiOverlay",
+    theme: "WifiOverlay",
+    vendor: true,
+}
