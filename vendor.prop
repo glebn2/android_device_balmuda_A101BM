@@ -55,8 +55,11 @@ vendor.audio.safx.pbe.enabled=false
 vendor.audio.parser.ip.buffer.size=262144
 vendor.audio.flac.sw.decoder.24bit=true
 persist.vendor.bt.a2dp_offload_cap=sbc-aptx-aptxtws-aptxhd-aac-ldac
-ro.bluetooth.a2dp_offload.supported=true
-persist.bluetooth.a2dp_offload.disabled=false
+# A2DP is encoded in software (SBC/AAC/aptX/aptX HD/LDAC/LHDC/Opus) through the AOSP "bluetooth" audio module
+# (configs/audio/audio_policy_configuration.xml). The stock DSP offload path cannot carry LHDC and fails with
+# the AOSP Bluetooth stack; only aptX Adaptive is lost.
+ro.bluetooth.a2dp_offload.supported=false
+persist.bluetooth.a2dp_offload.disabled=true
 persist.bluetooth.a2dp_offload.cap=sbc-aac-aptx-aptxhd-ldac
 vendor.audio.use.sw.alac.decoder=false
 vendor.audio.use.sw.ape.decoder=false
