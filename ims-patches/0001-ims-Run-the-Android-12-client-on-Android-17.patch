@@ -1,0 +1,101 @@
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Subject: [PATCH] ims: Run the Android 12 Qualcomm IMS client on Android 17
+
+- PhoneConstants.SENSITIVE / VDEBUG no longer exist: treat both as false.
+- ims-ext-common base classes only have (Executor, Context) constructors now:
+  pass context.getMainExecutor() and the context the subclass already has.
+---
+diff --git a/smali/com/qualcomm/ims/utils/Log.smali b/smali/com/qualcomm/ims/utils/Log.smali
+index 974669e..377ca7e 100644
+--- a/smali/com/qualcomm/ims/utils/Log.smali
++++ b/smali/com/qualcomm/ims/utils/Log.smali
+@@ -20,7 +20,7 @@
+     .locals 2
+ 
+     .line 32
+-    sget-boolean v0, Lcom/android/internal/telephony/PhoneConstants;->SENSITIVE:Z
++    const/4 v0, 0x0
+ 
+     sput-boolean v0, Lcom/qualcomm/ims/utils/Log;->FORCE_DEBUG:Z
+ 
+diff --git a/smali/org/codeaurora/ims/CrsCrbtControllerImpl.smali b/smali/org/codeaurora/ims/CrsCrbtControllerImpl.smali
+index e5316af..e7a5d08 100644
+--- a/smali/org/codeaurora/ims/CrsCrbtControllerImpl.smali
++++ b/smali/org/codeaurora/ims/CrsCrbtControllerImpl.smali
+@@ -37,7 +37,11 @@
+     .param p2, "context"    # Landroid/content/Context;
+ 
+     .line 71
+-    invoke-direct {p0}, Lorg/codeaurora/ims/CrsCrbtControllerBase;-><init>()V
++    invoke-virtual {p2}, Landroid/content/Context;->getMainExecutor()Ljava/util/concurrent/Executor;
++
++    move-result-object v0
++
++    invoke-direct {p0, v0, p2}, Lorg/codeaurora/ims/CrsCrbtControllerBase;-><init>(Ljava/util/concurrent/Executor;Landroid/content/Context;)V
+ 
+     .line 25
+     new-instance v0, Ljava/util/HashMap;
+diff --git a/smali/org/codeaurora/ims/ImsMultiIdentityImpl.smali b/smali/org/codeaurora/ims/ImsMultiIdentityImpl.smali
+index e085cef..dac6a11 100644
+--- a/smali/org/codeaurora/ims/ImsMultiIdentityImpl.smali
++++ b/smali/org/codeaurora/ims/ImsMultiIdentityImpl.smali
+@@ -69,7 +69,11 @@
+     .param p4, "looper"    # Landroid/os/Looper;
+ 
+     .line 56
+-    invoke-direct {p0}, Lorg/codeaurora/ims/ImsMultiIdentityControllerBase;-><init>()V
++    invoke-virtual {p3}, Landroid/content/Context;->getMainExecutor()Ljava/util/concurrent/Executor;
++
++    move-result-object v0
++
++    invoke-direct {p0, v0, p3}, Lorg/codeaurora/ims/ImsMultiIdentityControllerBase;-><init>(Ljava/util/concurrent/Executor;Landroid/content/Context;)V
+ 
+     .line 39
+     new-instance v0, Lorg/codeaurora/ims/ImsMultiIdentityImpl$1;
+diff --git a/smali/org/codeaurora/ims/ImsScreenShareControllerImpl.smali b/smali/org/codeaurora/ims/ImsScreenShareControllerImpl.smali
+index 8bf94c4..7e51cfe 100644
+--- a/smali/org/codeaurora/ims/ImsScreenShareControllerImpl.smali
++++ b/smali/org/codeaurora/ims/ImsScreenShareControllerImpl.smali
+@@ -22,7 +22,11 @@
+     .param p2, "context"    # Landroid/content/Context;
+ 
+     .line 35
+-    invoke-direct {p0}, Lorg/codeaurora/ims/ImsScreenShareControllerBase;-><init>()V
++    invoke-virtual {p2}, Landroid/content/Context;->getMainExecutor()Ljava/util/concurrent/Executor;
++
++    move-result-object v0
++
++    invoke-direct {p0, v0, p2}, Lorg/codeaurora/ims/ImsScreenShareControllerBase;-><init>(Ljava/util/concurrent/Executor;Landroid/content/Context;)V
+ 
+     .line 26
+     new-instance v0, Lorg/codeaurora/ims/ImsScreenShareControllerImpl$1;
+diff --git a/smali/org/codeaurora/ims/QtiImsExt.smali b/smali/org/codeaurora/ims/QtiImsExt.smali
+index 399eab5..a2f1ed1 100644
+--- a/smali/org/codeaurora/ims/QtiImsExt.smali
++++ b/smali/org/codeaurora/ims/QtiImsExt.smali
+@@ -37,7 +37,11 @@
+ 
+     .line 32
+     .local p2, "serviceSub":Ljava/util/List;, "Ljava/util/List<Lorg/codeaurora/ims/ImsServiceSub;>;"
+-    invoke-direct {p0}, Lorg/codeaurora/ims/QtiImsExtBase;-><init>()V
++    invoke-virtual {p1}, Landroid/content/Context;->getMainExecutor()Ljava/util/concurrent/Executor;
++
++    move-result-object v0
++
++    invoke-direct {p0, v0, p1}, Lorg/codeaurora/ims/QtiImsExtBase;-><init>(Ljava/util/concurrent/Executor;Landroid/content/Context;)V
+ 
+     .line 26
+     const-string v0, "android.permission.MODIFY_PHONE_STATE"
+diff --git a/smali/org/codeaurora/ims/parser/ConfInfo.smali b/smali/org/codeaurora/ims/parser/ConfInfo.smali
+index 4cb4600..3e5553d 100644
+--- a/smali/org/codeaurora/ims/parser/ConfInfo.smali
++++ b/smali/org/codeaurora/ims/parser/ConfInfo.smali
+@@ -56,7 +56,7 @@
+     .locals 1
+ 
+     .line 43
+-    sget-boolean v0, Lcom/android/internal/telephony/PhoneConstants;->VDEBUG:Z
++    const/4 v0, 0x0
+ 
+     sput-boolean v0, Lorg/codeaurora/ims/parser/ConfInfo;->debug:Z
+ 

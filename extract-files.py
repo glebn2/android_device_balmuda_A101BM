@@ -64,6 +64,9 @@ blob_fixups: blob_fixups_user_type = {
         'vendor/lib64/ls_client.so',
     ): blob_fixup()
         .add_needed('libbase_shim.so'),
+    # Stock Android 12 IMS client: removed PhoneConstants fields and new ims-ext-common constructors
+    'system_ext/priv-app/ims/ims.apk': blob_fixup()
+        .apktool_patch('ims-patches'),
 }  # fmt: skip
 
 module = ExtractUtilsModule(
