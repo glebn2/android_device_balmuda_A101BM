@@ -258,6 +258,11 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/media/media_codecs_c2.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_c2.xml \
     $(LOCAL_PATH)/media/media_codecs_performance_c2.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_performance_c2.xml
 
+# c2.qti: linear (not UBWC) encoder input. The ArcSoft camera node (EIS, low-light denoise) rejects UBWC
+# frames, so video from apps with a still stream (Open Camera, GCam) came out green or as noise.
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/media/video_system_specs.json:$(TARGET_COPY_OUT_VENDOR)/etc/video_system_specs.json
+
 # Recording profiles: stock media_profiles_vendor.xml + 2160p30 for camera 0 (apps read it, CameraX
 # offers no 4K without the profile). Excluded from the blobs.
 PRODUCT_COPY_FILES += \
