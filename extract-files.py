@@ -64,6 +64,13 @@ blob_fixups: blob_fixups_user_type = {
         'vendor/lib64/ls_client.so',
     ): blob_fixup()
         .add_needed('libbase_shim.so'),
+    # ArcSoft video node: with EIS on and fps > 30 NightHawk gets type 3 (off), otherwise its load breaks
+    # the frame cadence and async EIS drops the request (1080p60 in low light stopped recording)
+    'vendor/lib64/camera/components/com.arcsoft.node.singlecamvideomode.so': blob_fixup()
+        .binary_regex_replace(
+            bytes.fromhex('ed010836a2128052e1058052e00313aaf33400941f0000f1a3fffff06106809a'),
+            bytes.fromhex('884640b9c8010034881e40f9880100b408d542b91f790071ec14005408000014'),
+        ),
     # Stock Android 12 IMS client: removed PhoneConstants fields and new ims-ext-common constructors
     'system_ext/priv-app/ims/ims.apk': blob_fixup()
         .apktool_patch('ims-patches'),
