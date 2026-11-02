@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] nl80211: WPA3 (SAE) on the stock 4.19 kernel of BALMUDA Phone
+
+cfg80211 of the stock Kyocera 4.19 kernel rejects NL80211_WPA_VERSION_3
+in CONNECT with -EINVAL before the driver sees it, which Android reports
+as a wrong password: no SAE network (WPA3-only or WPA2/WPA3) could be
+joined. Send NL80211_WPA_VERSION_2 for RSN like the stock Android 11
+supplicant did; the qcacld driver detects SAE from the AKM and requests
+external auth, and wpa_supplicant runs SAE (including H2E).
+---
+ src/drivers/driver_nl80211.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/drivers/driver_nl80211.c b/src/drivers/driver_nl80211.c
+index af544ab..c6d93fa 100644
+--- a/src/drivers/driver_nl80211.c
++++ b/src/drivers/driver_nl80211.c
+@@ -3845,7 +3845,9 @@ static int wpa_ver_supported(struct wpa_driver_nl80211_data *drv,
+ 			* NL80211_ATTR_SAE_PASSWORD is related and was added
+ 			* at the same time as NL80211_WPA_VERSION_3.
+ 			*/
+-			if (nl80211_attr_supported(drv, NL80211_ATTR_SAE_PASSWORD) &&
++			/* BALMUDA Phone: cfg80211 of the stock 4.19 kernel rejects NL80211_WPA_VERSION_3;
++			 * the driver detects SAE from the AKM and asks for external auth */
++			if (0 && nl80211_attr_supported(drv, NL80211_ATTR_SAE_PASSWORD) &&
+ 				wpa_key_mgmt_sae(key_mgmt_suites))
+ 				ver |= NL80211_WPA_VERSION_3;
+ 			else

@@ -153,7 +153,8 @@
 
     <!-- Whether device supports double tap to wake.
          BALMUDA Phone: the Power HAL enables the ILITEK touch gesture mode on Mode::DOUBLE_TAP_TO_WAKE
-         (powerhint.json, TapToWake*); a double tap sends KEY_F3 -> WAKEUP (keylayout/ILITEK_TDDI.kl). -->
+         (powerhint.json, TapToWake*). A touch sends KEY_F3 (keylayout/ILITEK_TDDI.kl); the BalmudaParts KeyHandler
+         wakes the device on the second one in a row. -->
     <bool name="config_supportDoubleTapWake">true</bool>
 
     <!-- ComponentName of a dream to show whenever the system would otherwise have

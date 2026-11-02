@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <!-- BALMUDA Phone builds (updater/A101BM.json in lineage_balmuda_phone); raw.githubusercontent serves it without a redirect -->
+    <string name="updater_server_url" translatable="false">https://raw.githubusercontent.com/glebn2/lineage_balmuda_phone/main/updater/{device}.json</string>
+</resources>

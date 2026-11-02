@@ -1,0 +1,1 @@
+maxNonHFRFPS=60

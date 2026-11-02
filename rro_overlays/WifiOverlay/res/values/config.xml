@@ -60,7 +60,4 @@
          immediately after the country code is sent to the driver (if the method returns a
          success). -->
     <bool translatable="false" name="config_wifiDriverSupportedNl80211RegChangedEvent">true</bool>
-
-    <!-- The stock WLAN driver rejects SAE connect: keep WPA2/WPA3 transition networks on WPA2-PSK -->
-    <bool translatable="false" name="config_wifiSaeUpgradeEnabled">false</bool>
 </resources>

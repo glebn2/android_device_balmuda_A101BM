@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] LightsService: send plain black to turn a light off
+
+LineageOS puts the LED brightness into the alpha channel and forces alpha
+0 to 0xFF, so turning a light off reaches the HAL as 0xff000000. The
+Kyocera lights blob of BALMUDA Phone treats any non-zero alpha as an
+active request: a cleared notification (priority 2) kept masking the
+charging light (priority 4) until reboot. Apply the brightness alpha only
+to a non-black color.
+---
+ .../core/java/com/android/server/lights/LightsService.java    | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/services/core/java/com/android/server/lights/LightsService.java b/services/core/java/com/android/server/lights/LightsService.java
+index 08215af..64d0aa0 100644
+--- a/services/core/java/com/android/server/lights/LightsService.java
++++ b/services/core/java/com/android/server/lights/LightsService.java
+@@ -788,7 +788,9 @@ public class LightsService extends SystemService {
+             try {
+                 if (mVintfLights != null) {
+                     HwLightState lightState = new HwLightState();
+-                    if (mBrightnessLevel > 0 && mBrightnessLevel <= 0xFF) {
++                    // BALMUDA Phone: the Kyocera blob takes black with alpha for a light-on request
++                    if (mBrightnessLevel > 0 && mBrightnessLevel <= 0xFF
++                            && (color & 0x00FFFFFF) != 0) {
+                         int colorAlpha = color >>> 24;
+                         if (colorAlpha == 0x00) {
+                             colorAlpha = 0xFF;

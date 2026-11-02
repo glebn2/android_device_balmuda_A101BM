@@ -243,6 +243,22 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/powerhint.json:$(TARGET_COPY_OUT_VENDOR)/etc/powerhint.json
 
+# Camera: by default the Kyocera CamX HAL (maxNonHFRFPS=30) gives sensor modes above 30 fps to HFR only;
+# with 60 a regular session gets AE (60,60)/(15,60) and 1080p60.
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/camera/camxoverridesettings.txt:$(TARGET_COPY_OUT_VENDOR)/etc/camera/camxoverridesettings.txt
+
+# Codec2 video codecs: the stock media_codecs_c2.xml lists hardware codecs as OMX.qcom.* only, Android 17 uses
+# Codec2, so without c2.qti.* video recording fell back to the software c2.android.*. Excluded from the blobs.
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/media/media_codecs_c2.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_c2.xml \
+    $(LOCAL_PATH)/media/media_codecs_performance_c2.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_performance_c2.xml
+
+# Recording profiles: stock media_profiles_vendor.xml + 2160p30 for camera 0 (apps read it, CameraX
+# offers no 4K without the profile). Excluded from the blobs.
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/media/media_profiles_vendor.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_profiles_vendor.xml
+
 # Sensors
 PRODUCT_PACKAGES += \
     android.hardware.sensors-service.multihal
@@ -274,7 +290,8 @@ PRODUCT_BOOT_JARS += \
 PRODUCT_PACKAGES += \
     BalmudaParts
 
-# Tap to wake
+# Tap to wake: ILITEK sends KEY_F3 on a touch, the BalmudaParts KeyHandler wakes on the second one
+# (the Power HAL enables the gesture mode, powerhint.json)
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/keylayout/ILITEK_TDDI.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/ILITEK_TDDI.kl
 

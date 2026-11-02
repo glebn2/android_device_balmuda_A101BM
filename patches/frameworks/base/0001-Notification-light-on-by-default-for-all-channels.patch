@@ -5,24 +5,28 @@ Subject: [PATCH] NotificationRecord: light notifications by default
 
 Most apps never call enableLights(true), so the notification LED of
 BALMUDA Phone hardly ever lit. Show the light for every channel unless the
-user turned it off for that channel (USER_LOCKED_LIGHTS). Devices without a
+user turned it off for that channel (USER_LOCKED_LIGHTS). Ongoing
+notifications (USB debugging, USB, downloads) don't light it this way, or
+the LED would stay on and hide the charging light. Devices without a
 notification LED are not affected (canShowLightsLocked).
 ---
- .../com/android/server/notification/NotificationRecord.java  | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ .../android/server/notification/NotificationRecord.java    | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/services/core/java/com/android/server/notification/NotificationRecord.java b/services/core/java/com/android/server/notification/NotificationRecord.java
-index 44300dd..e96475b 100644
+index 44300dd..5becc82 100644
 --- a/services/core/java/com/android/server/notification/NotificationRecord.java
 +++ b/services/core/java/com/android/server/notification/NotificationRecord.java
-@@ -369,7 +369,10 @@ public final class NotificationRecord {
+@@ -369,7 +369,12 @@ public final class NotificationRecord {
  
          int channelLightColor = getChannel().getLightColor() != 0 ? getChannel().getLightColor()
                  : defaultLightColor;
 -        Light light = getChannel().shouldShowLights() ? new Light(channelLightColor,
-+        // BALMUDA Phone: light every channel unless the user turned the light off
++        // BALMUDA Phone: light every channel unless the user turned the light off;
++        // ongoing notifications don't light it
 +        final boolean channelLights = getChannel().shouldShowLights()
-+                || (getChannel().getUserLockedFields() & NotificationChannel.USER_LOCKED_LIGHTS) == 0;
++                || ((getChannel().getUserLockedFields() & NotificationChannel.USER_LOCKED_LIGHTS) == 0
++                        && (getSbn().getNotification().flags & Notification.FLAG_ONGOING_EVENT) == 0);
 +        Light light = channelLights ? new Light(channelLightColor,
                  defaultLightOn, defaultLightOff) : null;
          if (mPreChannelsNotification

@@ -99,3 +99,8 @@ bluetooth.profile.sap.server.enabled=true
 persist.dbg.volte_avail_ovr=1
 persist.dbg.vt_avail_ovr=1
 persist.dbg.wfc_avail_ovr=1
+
+# USB debugging on by default, also on release (non-debuggable) builds: a build for enthusiasts. Authorization
+# (ro.adb.secure=1) stays: every computer still has to be confirmed on the phone. Default USB mode while unlocked
+# is file transfer (patches/frameworks/base/0002-UsbDeviceManager-file-transfer-by-default.patch).
+persist.sys.usb.config=adb

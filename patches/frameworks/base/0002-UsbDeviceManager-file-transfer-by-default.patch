@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] UsbDeviceManager: file transfer by default while unlocked
+
+With no saved choice the screen-unlocked USB functions are empty, so the
+phone offers no data over USB until the user picks a mode (and with USB
+debugging on, only adb). Default to MTP until the user chooses; an explicit
+choice, including "No data transfer", is saved and still wins. Nothing
+changes while the screen is locked.
+---
+ .../com/android/server/usb/UsbDeviceManager.java   | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/services/usb/java/com/android/server/usb/UsbDeviceManager.java b/services/usb/java/com/android/server/usb/UsbDeviceManager.java
+index 88387b3..975a602 100644
+--- a/services/usb/java/com/android/server/usb/UsbDeviceManager.java
++++ b/services/usb/java/com/android/server/usb/UsbDeviceManager.java
+@@ -906,9 +906,7 @@ public class UsbDeviceManager implements ActivityTaskManagerInternal.ScreenObser
+                 Slog.e(TAG, "Couldn't load shared preferences");
+             } else {
+                 mScreenUnlockedFunctions = UsbManager.usbFunctionsFromString(
+-                        mSettings.getString(
+-                                String.format(Locale.ENGLISH, UNLOCKED_CONFIG_PREF, mCurrentUser),
+-                                ""));
++                        unlockedConfigPref(mCurrentUser));
+             }
+ 
+             // We do not show the USB notification if the primary volume supports mass storage.
+@@ -1664,8 +1662,7 @@ public class UsbDeviceManager implements ActivityTaskManagerInternal.ScreenObser
+                         mScreenUnlockedFunctions = UsbManager.FUNCTION_NONE;
+                         if (mSettings != null) {
+                             mScreenUnlockedFunctions = UsbManager.usbFunctionsFromString(
+-                                    mSettings.getString(String.format(Locale.ENGLISH,
+-                                            UNLOCKED_CONFIG_PREF, mCurrentUser), ""));
++                                    unlockedConfigPref(mCurrentUser));
+                         }
+                         setEnabledFunctions(UsbManager.FUNCTION_NONE, false, operationId);
+                     }
+@@ -1978,6 +1975,13 @@ public class UsbDeviceManager implements ActivityTaskManagerInternal.ScreenObser
+             return mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
+         }
+ 
++        // BALMUDA Phone: file transfer by default until the user picks a mode
++        private String unlockedConfigPref(int user) {
++            final String key = String.format(Locale.ENGLISH, UNLOCKED_CONFIG_PREF, user);
++            return mSettings.contains(key) ? mSettings.getString(key, "")
++                    : UsbManager.USB_FUNCTION_MTP;
++        }
++
+         protected long getChargingFunctions() {
+             // if ADB is enabled, reset functions to ADB
+             // else enable MTP as usual.

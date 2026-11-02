@@ -1,2 +1,4 @@
-# ILITEK TDDI touchscreen: double tap in gesture mode is reported as KEY_F3
-key 61    WAKEUP
+# ILITEK TDDI touchscreen: in gesture mode the firmware reports any touch of the screen-off panel
+# as "Double Click", KEY_F3 (61). No WAKEUP here: the BalmudaParts KeyHandler wakes the device
+# on the second KEY_F3 in a row (a real double tap).
+key 61    F3

@@ -2,7 +2,9 @@
 # IMS
 
 # Media
-media.stagefright.thumbnail.prefer_hw_codecs=true
+# Video thumbnails use the software decoder: with c2.qti.* (media_codecs_c2.xml) the 32-bit mediaserver
+# crashes in FrameDecoder::handleOutputBufferAsync on every thumbnail.
+media.stagefright.thumbnail.prefer_hw_codecs=false
 
 # Motorola
 
