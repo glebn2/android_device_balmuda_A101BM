@@ -93,6 +93,11 @@ PRODUCT_PACKAGES += \
     android.hardware.camera.provider@2.4-impl \
     android.hardware.camera.provider@2.4-service_64
 
+# camera.balmuda wraps camera.qcom.so (ro.hardware.camera in vendor.prop): frames carry CLOCK_BOOTTIME
+# stamps, so timestampSource is declared REALTIME and cameraservice aligns video with audio after sleep
+PRODUCT_PACKAGES += \
+    camera.balmuda
+
 
 # Display
 PRODUCT_PACKAGES += \

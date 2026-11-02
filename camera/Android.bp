@@ -1,0 +1,19 @@
+//
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+cc_library_shared {
+    name: "camera.balmuda",
+    relative_install_path: "hw",
+    vendor: true,
+    srcs: ["CameraWrapper.cpp"],
+    header_libs: ["libhardware_headers"],
+    shared_libs: [
+        "libcamera_metadata",
+        "libdl",
+        "liblog",
+    ],
+    compile_multilib: "64",
+    cflags: ["-Wall", "-Werror"],
+}

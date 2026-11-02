@@ -87,6 +87,8 @@ vendor.hw.fm.init=0
 vendor.mm.enable.qcom_parser=1536
 ro.hardware.vulkan=adreno
 ro.hardware.egl=adreno
+# Camera HAL module: camera.balmuda (wrapper over camera.qcom, see device.mk)
+ro.hardware.camera=balmuda
 ro.gfx.driver.1=com.qualcomm.qti.gpudrivers.lito.api30
 vendor.opengles.version=196610
 persist.vendor.qcom.bluetooth.soc=cherokee
