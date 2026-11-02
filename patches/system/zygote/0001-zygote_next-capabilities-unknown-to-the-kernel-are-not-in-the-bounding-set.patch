@@ -1,0 +1,29 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] zygote_next: capabilities unknown to the kernel are not in
+ the bounding set
+
+The stock 4.19 kernel of BALMUDA Phone does not know CAP_PERFMON, CAP_BPF
+and CAP_CHECKPOINT_RESTORE, so PR_CAPBSET_READ returns EINVAL for them and
+the child panicked with "Failed to check capability bound". Every
+android-native-app process died this way: Chrome renderers never started
+and pages stayed blank. Treat such a capability as not in the set.
+---
+ zygote/src/child_process.rs | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/zygote/src/child_process.rs b/zygote/src/child_process.rs
+index f6ec741..95dc307 100644
+--- a/zygote/src/child_process.rs
++++ b/zygote/src/child_process.rs
+@@ -83,7 +83,8 @@ pub(crate) fn re_initialize(
+     if let Some(cap_bound) = spawn_params.cap_bound {
+         for flag in cap_bound.complement().iter() {
+             let cap = Capability::try_from(flag.bits().trailing_zeros()).unwrap();
+-            if cap::cap_within_bound(cap).expect("Failed to check capability bound") {
++            // BALMUDA Phone: 4.19 does not know capabilities after CAP_AUDIT_READ (EINVAL), so they are not in the set
++            if cap::cap_within_bound(cap).unwrap_or(false) {
+                 cap::cap_drop_bound(cap).expect("Failed to drop capability bound");
+             }
+         }
