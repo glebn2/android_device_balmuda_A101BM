@@ -6,4 +6,6 @@
 <resources>
     <!-- BALMUDA Phone builds (updater/A101BM.json in lineage_balmuda_phone); raw.githubusercontent serves it without a redirect -->
     <string name="updater_server_url" translatable="false">https://raw.githubusercontent.com/glebn2/lineage_balmuda_phone/main/updater/{device}.json</string>
+    <!-- "Recent changes" opens the GitHub releases with their changelogs (download.lineageos.org has no page for this device) -->
+    <string name="menu_changelog_url" translatable="false">https://github.com/glebn2/lineage_balmuda_phone/releases</string>
 </resources>
