@@ -30,4 +30,7 @@
          should be either LOW (1) or HIGH (3).
     -->
     <integer name="config_vibration_supported_intensity_levels">3</integer>
+
+    <!-- Battery > Battery information: actual capacity (charge_full) and its share of the design capacity -->
+    <bool name="config_show_battery_info">true</bool>
 </resources>
