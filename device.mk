@@ -78,6 +78,10 @@ PRODUCT_COPY_FILES += \
     frameworks/av/services/audiopolicy/config/r_submix_audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/r_submix_audio_policy_configuration.xml \
     $(LOCAL_PATH)/configs/audio/audio_policy_configuration.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_configuration.xml
 
+# addon.d: keep Play services moved by the TWRP GMS fix across updates
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/addon.d/40-balmuda-gms.sh:$(TARGET_COPY_OUT_SYSTEM)/addon.d/40-balmuda-gms.sh
+
 # Boot control
 PRODUCT_PACKAGES += \
     android.hardware.boot-service.qti \

@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] backuptool_ab: also run addon.d scripts of the new system
+
+An A/B update runs only the addon.d scripts of the old system, so a script
+that a new build adds would take effect only from the next update. Add the
+scripts that only the new system has. BALMUDA Phone ships
+40-balmuda-gms.sh, which keeps Play services that TWRP moved out of the
+MindTheGapps APEX: the GApps addon.d list does not know them.
+---
+ prebuilt/common/bin/backuptool_ab.sh | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/prebuilt/common/bin/backuptool_ab.sh b/prebuilt/common/bin/backuptool_ab.sh
+index b5741d8..e547520 100644
+--- a/prebuilt/common/bin/backuptool_ab.sh
++++ b/prebuilt/common/bin/backuptool_ab.sh
+@@ -38,6 +38,13 @@ preserve_addon_d() {
+ 
+     chmod 755 /postinstall/tmp/addon.d/*.sh
+   fi
++
++  # BALMUDA Phone: also run scripts that only the new system has
++  for f in /postinstall/system/addon.d/*.sh; do
++    [ -f "$f" ] && [ ! -e /postinstall/tmp/addon.d/${f##*/} ] || continue
++    mkdir -p /postinstall/tmp/addon.d/
++    cp -a "$f" /postinstall/tmp/addon.d/ && chmod 755 /postinstall/tmp/addon.d/${f##*/}
++  done
+ }
+ 
+ # Restore /postinstall/system/addon.d from /postinstall/tmp/addon.d
