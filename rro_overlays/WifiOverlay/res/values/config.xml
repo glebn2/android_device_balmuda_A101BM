@@ -28,6 +28,10 @@
     <!-- Wifi driver supports Automatic channel selection (ACS) for softap -->
     <bool translatable="false" name="config_wifi_softap_acs_supported">true</bool>
 
+    <!-- SAE stays enabled: patches/external/wpa_supplicant_8/0001-nl80211-WPA3-SAE-on-the-stock-4.19-kernel.patch
+         keeps the stock kernel's WPA_VERSION_2 encoding for both CONNECT and START_AP. -->
+    <bool translatable="false" name="config_wifi_softap_sae_supported">true</bool>
+
     <!-- Wifi driver supports IEEE80211AC for softap -->
     <bool translatable="false" name="config_wifi_softap_ieee80211ac_supported">true</bool>
 

@@ -1,0 +1,45 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] TetherController: spawn dnsmasq without close_range on a 4.19
+ kernel
+
+POSIX_SPAWN_CLOEXEC_DEFAULT makes bionic call close_range(CLOSE_RANGE_CLOEXEC),
+which the stock 4.19 kernel of BALMUDA Phone lacks (ENOSYS): the child exited
+127 before exec of dnsmasq and tethering tore down every hotspot it had just
+created. Use the flag only when the kernel supports close_range; dnsmasq
+closes inherited descriptors itself.
+---
+ server/TetherController.cpp | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/server/TetherController.cpp b/server/TetherController.cpp
+index b159d95..b868366 100644
+--- a/server/TetherController.cpp
++++ b/server/TetherController.cpp
+@@ -17,6 +17,8 @@
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <inttypes.h>
++#include <linux/close_range.h>
++#include <unistd.h>
+ #include <netdb.h>
+ #include <spawn.h>
+ #include <string.h>
+@@ -291,7 +293,15 @@ int TetherController::startTethering(bool usingLegacyDnsProxy, int num_addrs, ch
+         return -res;
+     }
+     const android::base::ScopeGuard attrGuard = [&] { posix_spawnattr_destroy(&attr); };
+-    res = posix_spawnattr_setflags(&attr, POSIX_SPAWN_USEVFORK | POSIX_SPAWN_CLOEXEC_DEFAULT);
++    // BALMUDA: old kernels do not implement close_range(CLOEXEC). Bionic exits
++    // the spawned child with 127 before exec in that case. dnsmasq itself closes
++    // inherited descriptors other than stdin/out/err at the start of main().
++    // Probe an empty fd range, so this never changes a live descriptor.
++    static const bool hasCloseRangeCloexec =
++            close_range(~0U, ~0U, CLOSE_RANGE_CLOEXEC) == 0;
++    const short spawnFlags = POSIX_SPAWN_USEVFORK |
++            (hasCloseRangeCloexec ? POSIX_SPAWN_CLOEXEC_DEFAULT : 0);
++    res = posix_spawnattr_setflags(&attr, spawnFlags);
+     if (res) {
+         ALOGE("posix_spawnattr_setflags failed (%s)", strerror(res));
+         return -res;
