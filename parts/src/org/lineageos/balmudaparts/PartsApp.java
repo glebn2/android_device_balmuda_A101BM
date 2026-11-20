@@ -7,11 +7,15 @@ package org.lineageos.balmudaparts;
 
 import android.app.Application;
 
-/** Persistent process: registers the gesture sensors at boot. */
+/**
+ * Persistent process: registers the gesture sensors at boot
+ * and turns USB debugging on after the setup wizard.
+ */
 public class PartsApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
         GestureController.get(this).start();
+        AdbAfterSetup.start(this);
     }
 }
