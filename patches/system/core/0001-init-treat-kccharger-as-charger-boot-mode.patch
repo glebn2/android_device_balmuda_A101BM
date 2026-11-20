@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] init: treat kccharger as the charger boot mode
+
+The Kyocera bootloader of BALMUDA Phone reports off-mode charging as
+androidboot.mode=kccharger. Export it as ro.bootmode=charger: init, the
+health HAL and the charger UI all expect that value. Without it a
+powered-off phone booted all of Android when plugged in, and matching
+kccharger in init alone left the charger UI waiting forever for
+bpf.progs_loaded (black screen with the backlight on).
+---
+ init/property_service.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index 89adf33..9ba54c7 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -1357,6 +1357,10 @@ static void ExportKernelBootProps() {
+     };
+     for (const auto& prop : prop_map) {
+         std::string value = GetProperty(prop.src_prop, prop.default_value);
++        // BALMUDA: the Kyocera bootloader reports off-mode charging as androidboot.mode=kccharger.
++        // init, the health HAL and the charger UI all expect ro.bootmode=charger; with kccharger
++        // init booted all of Android, and the charger waited forever for bpf.progs_loaded.
++        if (std::string(prop.dst_prop) == "ro.bootmode" && value == "kccharger") value = "charger";
+         if (value != UNSET) InitPropertySet(prop.dst_prop, value);
+     }
+ }
