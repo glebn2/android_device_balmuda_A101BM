@@ -1,0 +1,66 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: glebn2 <40612835+glebn2@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 12:00:00 +0300
+Subject: [PATCH] PackageInstaller.SessionInfo: drop an icon that cannot be
+ parceled
+
+The optional app icon of a session was written straight into the
+broadcast parcel; when its bitmap blob could not be copied, system_server
+crashed and took SystemUI with it (seen while installing apps from F-Droid).
+Write the icon into a separate parcel first and send no icon on the two
+known bitmap blob failures.
+---
+ .../android/content/pm/PackageInstaller.java  | 33 ++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
+
+diff --git a/core/java/android/content/pm/PackageInstaller.java b/core/java/android/content/pm/PackageInstaller.java
+index 8926ad1..daa8bf9 100644
+--- a/core/java/android/content/pm/PackageInstaller.java
++++ b/core/java/android/content/pm/PackageInstaller.java
+@@ -5043,7 +5043,7 @@ public class PackageInstaller {
+             dest.writeInt(installScenario);
+             dest.writeLong(sizeBytes);
+             dest.writeString(appPackageName);
+-            dest.writeParcelable(appIcon, flags);
++            writeAppIconSafely(dest, flags);
+             dest.writeString(appLabel != null ? appLabel.toString() : null);
+ 
+             dest.writeInt(installLocation);
+@@ -5078,6 +5078,37 @@ public class PackageInstaller {
+             dest.writeBoolean(isAutoInstallingDependenciesEnabled);
+         }
+ 
++        // App icons are optional. Native bitmap blob failures must not bring down
++        // system_server while broadcasting SessionInfo. Stage the value separately so
++        // a failed native write cannot leave a partial Parcelable in the target.
++        private void writeAppIconSafely(Parcel dest, int flags) {
++            if (appIcon == null) {
++                dest.writeParcelable(null, flags);
++                return;
++            }
++            final Parcel iconParcel = Parcel.obtain();
++            final boolean allowFds = dest.pushAllowFds(false);
++            dest.restoreAllowFds(allowFds);
++            iconParcel.pushAllowFds(allowFds);
++            try {
++                try {
++                    iconParcel.writeParcelable(appIcon, flags);
++                } catch (RuntimeException e) {
++                    if (!"Could not copy bitmap to parcel blob.".equals(e.getMessage())
++                            && !"Could not write bitmap blob file descriptor.".equals(
++                                    e.getMessage())) {
++                        throw e;
++                    }
++                    android.util.Log.w("PackageInstaller", "Omitting unavailable session icon", e);
++                    dest.writeParcelable(null, flags);
++                    return;
++                }
++                dest.appendFrom(iconParcel, 0, iconParcel.dataSize());
++            } finally {
++                iconParcel.recycle();
++            }
++        }
++
+         public static final Parcelable.Creator<SessionInfo>
+                 CREATOR = new Parcelable.Creator<SessionInfo>() {
+                     @Override
