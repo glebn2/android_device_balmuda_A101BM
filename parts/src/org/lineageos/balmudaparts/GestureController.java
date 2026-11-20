@@ -18,6 +18,8 @@ import android.hardware.TriggerEvent;
 import android.hardware.TriggerEventListener;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.service.notification.Condition;
@@ -31,7 +33,7 @@ import java.util.Arrays;
 /**
  * BALMUDA gestures on the stock Kyocera sensors (vendor sensor types):
  * - Relax mode: face down silences notifications; alarms ring, calls only vibrate.
- * - Shake to wake (flick_detect, one-shot wake-up sensor).
+ * - Shake to wake (flick_detect, one-shot wake-up sensor) when the proximity sensor is not covered.
  */
 public final class GestureController implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "BalmudaParts";
@@ -40,6 +42,7 @@ public final class GestureController implements SharedPreferences.OnSharedPrefer
     static final String KEY_SHAKE = "shake_to_wake";
     private static final String KEY_RULE_ID = "relax_rule_id";
     private static final String KEY_SAVED_RINGER = "relax_saved_ringer";
+    private static final long PROXIMITY_TIMEOUT_MS = 500;
 
     private static final String TYPE_FACEDOWN = "jp.kyocera.hardware.sensors.facedown_detect";
     private static final String TYPE_FLICK = "jp.kyocera.hardware.sensors.flick_detect";
@@ -56,9 +59,13 @@ public final class GestureController implements SharedPreferences.OnSharedPrefer
     private final AudioManager mAudioManager;
     private final Sensor mFaceDownSensor;
     private final Sensor mFlickSensor;
+    private final Sensor mProximitySensor;
+    private final PowerManager.WakeLock mProximityWakeLock;
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     private boolean mFaceDownListening;
     private boolean mFlickArmed;
+    private boolean mProximityPending;
     private boolean mRelaxActive;
 
     static synchronized GestureController get(Context context) {
@@ -77,7 +84,14 @@ public final class GestureController implements SharedPreferences.OnSharedPrefer
         mAudioManager = context.getSystemService(AudioManager.class);
         mFaceDownSensor = findSensor(TYPE_FACEDOWN);
         mFlickSensor = findSensor(TYPE_FLICK);
-        Log.i(TAG, "facedown=" + mFaceDownSensor + " flick=" + mFlickSensor);
+        final Sensor wakeProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY, true);
+        mProximitySensor = wakeProximity != null ? wakeProximity
+                : mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        mProximityWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                "BalmudaParts:shake");
+        mProximityWakeLock.setReferenceCounted(false);
+        Log.i(TAG, "facedown=" + mFaceDownSensor + " flick=" + mFlickSensor
+                + " proximity=" + mProximitySensor);
     }
 
     static boolean hasFaceDownSensor(Context context) {
@@ -146,12 +160,66 @@ public final class GestureController implements SharedPreferences.OnSharedPrefer
             Log.d(TAG, "flick " + Arrays.toString(event.values));
             // One-shot sensor: re-arm after it fires
             mFlickArmed = mSensorManager.requestTriggerSensor(mFlickListener, mFlickSensor);
-            if (!mPowerManager.isInteractive()) {
-                mPowerManager.wakeUp(SystemClock.uptimeMillis(),
-                        PowerManager.WAKE_REASON_GESTURE, "balmuda:shake");
+            if (mPowerManager.isInteractive()) {
+                return;
+            }
+            if (mProximitySensor == null) {
+                wakeByShake();
+                return;
+            }
+            // In a pocket or a bag the proximity sensor is covered: do not wake the screen.
+            // On-change sensor: the first event arrives right after registration.
+            if (!mProximityPending) {
+                mProximityPending = true;
+                mProximityWakeLock.acquire(PROXIMITY_TIMEOUT_MS);
+                mSensorManager.registerListener(mProximityListener, mProximitySensor,
+                        SensorManager.SENSOR_DELAY_FASTEST);
+                mHandler.postDelayed(mProximityTimeout, PROXIMITY_TIMEOUT_MS);
             }
         }
     };
+
+    private final SensorEventListener mProximityListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            final boolean near = event.values.length > 0
+                    && event.values[0] < mProximitySensor.getMaximumRange();
+            Log.d(TAG, "shake proximity " + Arrays.toString(event.values) + " near=" + near);
+            finishProximityCheck();
+            if (!near) {
+                wakeByShake();
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+
+    // No answer from the sensor counts as covered: a wake in the pocket is worse than a missed one
+    private final Runnable mProximityTimeout = () -> {
+        Log.d(TAG, "shake proximity timeout");
+        finishProximityCheck();
+    };
+
+    private void finishProximityCheck() {
+        if (!mProximityPending) {
+            return;
+        }
+        mProximityPending = false;
+        mHandler.removeCallbacks(mProximityTimeout);
+        mSensorManager.unregisterListener(mProximityListener);
+        if (mProximityWakeLock.isHeld()) {
+            mProximityWakeLock.release();
+        }
+    }
+
+    private void wakeByShake() {
+        if (!mPowerManager.isInteractive()) {
+            mPowerManager.wakeUp(SystemClock.uptimeMillis(),
+                    PowerManager.WAKE_REASON_GESTURE, "balmuda:shake");
+        }
+    }
 
     private void setRelaxActive(boolean active) {
         if (active == mRelaxActive) {
